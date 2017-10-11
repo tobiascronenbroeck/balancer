@@ -86,7 +86,7 @@ void balancerwritetouart1(char text[], int size)
 
 int  readvoltages()
 {
-	HAL_ADC_Start_DMA(&hdma_adc1;, uint32_t* pData, uint32_t Length);
+	//HAL_ADC_Start_DMA(&hdma_adc1;, uint32_t* pData, uint32_t Length);
 
 	return 0;
 }
