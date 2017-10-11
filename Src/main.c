@@ -35,12 +35,12 @@
 #include "adc.h"
 #include "can.h"
 #include "dac.h"
+#include "dma.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
-
 
 /* USER CODE BEGIN Includes */
 
@@ -64,11 +64,17 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN 0 */
 
-/* USER CODE END 0 */
-void balancerwritetouart1(char text[])
+void balancerwritetouart1(char text[], int size)
 {
-	HAL_UART_Transmit(&huart1, (uint8_t*)text, sizeof((uint8_t*)text), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart1, (uint8_t*)text, size, HAL_MAX_DELAY);
 }
+
+int  readvoltages()
+{
+
+	return 0;
+}
+/* USER CODE END 0 */
 
 int main(void)
 {
@@ -87,9 +93,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
-//  MX_CAN1_Init();
+  //MX_CAN1_Init();
   MX_DAC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
@@ -99,16 +106,22 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_USB_DEVICE_Init();
+  //SystemClock_Config();
 
   /* USER CODE BEGIN 2 */
+  balancerwritetouart1("Starting Balancer HAL...",22);
+
+
   /* USER CODE END 2 */
-  balancerwritetouart1("Starting Balancer Subsystem");
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
   /* USER CODE END WHILE */
+
   /* USER CODE BEGIN 3 */
+	  //readvoltages();
       uint8_t buffer[5];
 	  HAL_UART_Receive(&huart1, buffer, sizeof(buffer), HAL_MAX_DELAY);
 	  HAL_UART_Transmit(&huart1, buffer, sizeof(buffer), HAL_MAX_DELAY);
@@ -116,7 +129,6 @@ int main(void)
   /* USER CODE END 3 */
 
 }
-
 
 /** System Clock Configuration
 */
@@ -135,9 +147,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 72;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 3;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -147,9 +159,9 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
