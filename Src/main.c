@@ -66,8 +66,11 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-uint16_t Voltages[7];
-uint16_t Currents[7];
+uint16_t VoltagesRAW[7];
+uint16_t CurrentsRAW[7];
+double Voltages[7];
+double Currents[7];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,10 +91,35 @@ void balancerwritetouart1(char text[], int size)
 void  startADCsampling()
 {
 	balancerwritetouart1("Starting ADC Sampling...\n",24);
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)Voltages, 7);
-	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)Currents, 7);
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)VoltagesRAW, 7);
+	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)CurrentsRAW, 7);
 	balancerwritetouart1("Success!",8);
 }
+
+void convertRAWtoVoltage()
+{
+	double multiplicator = 0.0008056640625;
+	Voltages[0]=VoltagesRAW[0]*multiplicator;
+	Voltages[1]=VoltagesRAW[1]*multiplicator;
+	Voltages[2]=VoltagesRAW[2]*multiplicator;
+	Voltages[3]=VoltagesRAW[3]*multiplicator;
+	Voltages[4]=VoltagesRAW[4]*multiplicator;
+	Voltages[5]=VoltagesRAW[5]*multiplicator;
+	Voltages[6]=VoltagesRAW[6]*multiplicator;
+}
+
+void convertRAWtoCurrent()
+{
+	double multiplicator = 0.0008056640625;
+	Currents[0]=CurrentsRAW[0]*multiplicator;
+	Currents[1]=CurrentsRAW[1]*multiplicator;
+	Currents[2]=CurrentsRAW[2]*multiplicator;
+	Currents[3]=CurrentsRAW[3]*multiplicator;
+	Currents[4]=CurrentsRAW[4]*multiplicator;
+	Currents[5]=CurrentsRAW[5]*multiplicator;
+	Currents[6]=CurrentsRAW[6]*multiplicator;
+}
+
 
 /* USER CODE END 0 */
 
@@ -149,9 +177,11 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 	  startADCsampling();
-      uint8_t buffer[5];
-	  HAL_UART_Receive(&huart1, buffer, sizeof(buffer), HAL_MAX_DELAY);
-	  HAL_UART_Transmit(&huart1, buffer, sizeof(buffer), HAL_MAX_DELAY);
+      //uint8_t buffer[5];
+	  //HAL_UART_Receive(&huart1, buffer, sizeof(buffer), HAL_MAX_DELAY);
+	  HAL_UART_Transmit(&huart1, (uint8_t*)Voltages, 14, HAL_MAX_DELAY);
+	  balancerwritetouart1("\n",2);
+
   }
   /* USER CODE END 3 */
 
