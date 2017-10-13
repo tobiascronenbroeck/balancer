@@ -66,7 +66,8 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+uint16_t Voltages[7];
+uint16_t Currents[7];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -84,12 +85,14 @@ void balancerwritetouart1(char text[], int size)
 	HAL_UART_Transmit(&huart1, (uint8_t*)text, size, HAL_MAX_DELAY);
 }
 
-int  readvoltages()
+void  startADCsampling()
 {
-	//HAL_ADC_Start_DMA(&hdma_adc1;, uint32_t* pData, uint32_t Length);
-
-	return 0;
+	balancerwritetouart1("Starting ADC Sampling...\n",24);
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)Voltages, 7);
+	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)Currents, 7);
+	balancerwritetouart1("Success!",8);
 }
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -120,7 +123,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
-  MX_CAN1_Init();
+  // MX_CAN1_Init();
   MX_DAC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
@@ -132,8 +135,9 @@ int main(void)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 2 */
-  balancerwritetouart1("Starting Balancer HAL...",22);
+  balancerwritetouart1("Starting Balancer HAL...\n",24);
 
+  startADCsampling();
 
   /* USER CODE END 2 */
 
@@ -144,7 +148,7 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  //readvoltages();
+	  startADCsampling();
       uint8_t buffer[5];
 	  HAL_UART_Receive(&huart1, buffer, sizeof(buffer), HAL_MAX_DELAY);
 	  HAL_UART_Transmit(&huart1, buffer, sizeof(buffer), HAL_MAX_DELAY);
