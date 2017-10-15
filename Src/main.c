@@ -121,20 +121,33 @@ void convertRAWtoCurrent()
 	Currents[6]=CurrentsRAW[6]*multiplicator;
 }
 
-void printVoltages2UART1()
+void printRAWVoltages2UART1()
 {
 
-	char transmit[40];
+	char transmit[60];
 	sprintf(transmit, "V_ADC: %d %d %d %d %d %d %d \n", VoltagesRAW[0], VoltagesRAW[1], VoltagesRAW[2], VoltagesRAW[3], VoltagesRAW[4], VoltagesRAW[5], VoltagesRAW[6]);
 	balancerwritetouart1(transmit);
 }
 
-void printCurrents2UART1()
+void printRAWCurrents2UART1()
 {
 
 	char transmit[40];
 	sprintf(transmit, "I_ADC: %d %d %d %d %d %d %d \n", CurrentsRAW[0], CurrentsRAW[1], CurrentsRAW[2], CurrentsRAW[3], CurrentsRAW[4], CurrentsRAW[5], CurrentsRAW[6]);
 	balancerwritetouart1(transmit);
+}
+
+void printVoltages2UART1()
+{
+	//Fehler
+	char transmit1[60];
+	sprintf(transmit1, "V_ADC: %d %d %d %d %d %d %d \n", Voltages[0], Voltages[1], Voltages[2], Voltages[3], Voltages[4], Voltages[5], Voltages[6]);
+	balancerwritetouart1(transmit1);
+}
+
+void print2USB()
+{
+	char transmit[40];
 }
 
 /* USER CODE END 0 */
@@ -179,6 +192,7 @@ int main(void)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 2 */
+
   balancerwritetouart1("Starting Balancer HAL...\n");
   startADCsampling();
 
@@ -191,9 +205,14 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  printVoltages2UART1();
-	  printCurrents2UART1();
+	  //Converting RAW ADC Data to Voltages
+	  convertRAWtoVoltage();
+	  convertRAWtoCurrent();
+	  //Print RAW ADC Data to UART
+	  printRAWVoltages2UART1();
+	  printRAWCurrents2UART1();
 	  HAL_Delay(2000);
+
   }
   /* USER CODE END 3 */
 
