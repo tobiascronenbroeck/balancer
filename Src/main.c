@@ -123,7 +123,6 @@ void convertRAWtoCurrent()
 
 void printRAWVoltages2UART1()
 {
-
 	char transmit[60];
 	sprintf(transmit, "V_ADC: %d %d %d %d %d %d %d \n", VoltagesRAW[0], VoltagesRAW[1], VoltagesRAW[2], VoltagesRAW[3], VoltagesRAW[4], VoltagesRAW[5], VoltagesRAW[6]);
 	balancerwritetouart1(transmit);
@@ -137,17 +136,43 @@ void printRAWCurrents2UART1()
 	balancerwritetouart1(transmit);
 }
 
-void printVoltages2UART1()
+void printRAWVoltages2USB()
 {
-	//Fehler
-	char transmit1[60];
-	sprintf(transmit1, "V_ADC: %d %d %d %d %d %d %d \n", Voltages[0], Voltages[1], Voltages[2], Voltages[3], Voltages[4], Voltages[5], Voltages[6]);
-	balancerwritetouart1(transmit1);
+	//Fehlerhaft
+	char transmit[60];
+	sprintf(transmit, "V_ADC: %d %d %d %d %d %d %d \n", VoltagesRAW[0], VoltagesRAW[1], VoltagesRAW[2], VoltagesRAW[3], VoltagesRAW[4], VoltagesRAW[5], VoltagesRAW[6]);
+	HAL_Delay(1000);
+	//CDC_Transmit_FS(transmit,60);
 }
 
-void print2USB()
+void startTimers()
 {
-	char transmit[40];
+	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_4);
+	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_3);
+}
+
+void setCell1PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,value);}
+void setCell2PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,value);}
+void setCell3PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_3,value);}
+void setCell4PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_4,value);}
+void setCell5PWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,value);}
+void setCell6PWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,value);}
+void setFANPWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,value);}
+
+void testTimers()
+{
+	  setCell1PWM(200);
+	  setCell2PWM(200);
+	  setCell3PWM(200);
+	  setCell4PWM(200);
+	  setCell5PWM(200);
+	  setCell6PWM(200);
+	  setFANPWM(200);
 }
 
 /* USER CODE END 0 */
@@ -195,6 +220,8 @@ int main(void)
 
   balancerwritetouart1("Starting Balancer HAL...\n");
   startADCsampling();
+  startTimers();
+  //testTimers();
 
   /* USER CODE END 2 */
 
@@ -211,8 +238,8 @@ int main(void)
 	  //Print RAW ADC Data to UART
 	  printRAWVoltages2UART1();
 	  printRAWCurrents2UART1();
-	  HAL_Delay(2000);
 
+	  HAL_Delay(2000);
   }
   /* USER CODE END 3 */
 
