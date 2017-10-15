@@ -83,17 +83,18 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN 0 */
 
-void balancerwritetouart1(char text[], int size)
+
+void balancerwritetouart1(char text[])
 {
-	HAL_UART_Transmit(&huart1, (uint8_t*)text, size, HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart1, (uint8_t *)text, strlen((const char*)text), HAL_MAX_DELAY);
 }
 
 void  startADCsampling()
 {
-	balancerwritetouart1("Starting ADC Sampling...\n",24);
+	balancerwritetouart1("Starting ADC Sampling...\n");
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)VoltagesRAW, 7);
 	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)CurrentsRAW, 7);
-	balancerwritetouart1("Success!",8);
+	balancerwritetouart1("Success!\n");
 }
 
 void convertRAWtoVoltage()
@@ -120,6 +121,21 @@ void convertRAWtoCurrent()
 	Currents[6]=CurrentsRAW[6]*multiplicator;
 }
 
+void printVoltages2UART1()
+{
+
+	char transmit[40];
+	sprintf(transmit, "V_ADC: %d %d %d %d %d %d %d \n", VoltagesRAW[0], VoltagesRAW[1], VoltagesRAW[2], VoltagesRAW[3], VoltagesRAW[4], VoltagesRAW[5], VoltagesRAW[6]);
+	balancerwritetouart1(transmit);
+}
+
+void printCurrents2UART1()
+{
+
+	char transmit[40];
+	sprintf(transmit, "I_ADC: %d %d %d %d %d %d %d \n", CurrentsRAW[0], CurrentsRAW[1], CurrentsRAW[2], CurrentsRAW[3], CurrentsRAW[4], CurrentsRAW[5], CurrentsRAW[6]);
+	balancerwritetouart1(transmit);
+}
 
 /* USER CODE END 0 */
 
@@ -151,7 +167,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
-  // MX_CAN1_Init();
+  //MX_CAN1_Init();
   MX_DAC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
@@ -163,8 +179,7 @@ int main(void)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 2 */
-  balancerwritetouart1("Starting Balancer HAL...\n",24);
-
+  balancerwritetouart1("Starting Balancer HAL...\n");
   startADCsampling();
 
   /* USER CODE END 2 */
@@ -176,12 +191,9 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  startADCsampling();
-      //uint8_t buffer[5];
-	  //HAL_UART_Receive(&huart1, buffer, sizeof(buffer), HAL_MAX_DELAY);
-	  HAL_UART_Transmit(&huart1, (uint8_t*)Voltages, 14, HAL_MAX_DELAY);
-	  balancerwritetouart1("\n",2);
-
+	  printVoltages2UART1();
+	  printCurrents2UART1();
+	  HAL_Delay(2000);
   }
   /* USER CODE END 3 */
 
