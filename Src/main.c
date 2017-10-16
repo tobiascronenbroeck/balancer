@@ -66,10 +66,11 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-uint16_t VoltagesRAW[7];
+uint16_t VoltagesRAW[8];
 uint16_t CurrentsRAW[7];
 double Voltages[7];
 double Currents[7];
+double sysTemp;
 
 /* USER CODE END PV */
 
@@ -92,14 +93,26 @@ void balancerwritetouart1(char text[])
 void  startADCsampling()
 {
 	balancerwritetouart1("Starting ADC Sampling...\n");
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)VoltagesRAW, 7);
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)VoltagesRAW, 8);
 	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)CurrentsRAW, 7);
 	balancerwritetouart1("Success!\n");
 }
 
+void calcTemp()
+{
+	double sysTempTemp= VoltagesRAW[7];
+	sysTempTemp*=3300;
+	sysTempTemp/=0xfff;
+	sysTempTemp/=1000.0;
+	sysTempTemp-=0.760;
+	sysTempTemp/=0.0025;
+	sysTempTemp+=25.0;
+	sysTemp=sysTempTemp;
+}
+
 void convertRAWtoVoltage()
 {
-	double multiplicator = 0.0008056640625;
+	double multiplicator = (3300/0xfff)/1000;
 	Voltages[0]=VoltagesRAW[0]*multiplicator;
 	Voltages[1]=VoltagesRAW[1]*multiplicator;
 	Voltages[2]=VoltagesRAW[2]*multiplicator;
@@ -124,7 +137,7 @@ void convertRAWtoCurrent()
 void printRAWVoltages2UART1()
 {
 	char transmit[60];
-	sprintf(transmit, "V_ADC: %d %d %d %d %d %d %d \n", VoltagesRAW[0], VoltagesRAW[1], VoltagesRAW[2], VoltagesRAW[3], VoltagesRAW[4], VoltagesRAW[5], VoltagesRAW[6]);
+	sprintf(transmit, "V_ADC: %d %d %d %d %d %d %d Temp: %d\n", VoltagesRAW[0], VoltagesRAW[1], VoltagesRAW[2], VoltagesRAW[3], VoltagesRAW[4], VoltagesRAW[5], VoltagesRAW[6],(int)sysTemp);
 	balancerwritetouart1(transmit);
 }
 
@@ -134,15 +147,6 @@ void printRAWCurrents2UART1()
 	char transmit[40];
 	sprintf(transmit, "I_ADC: %d %d %d %d %d %d %d \n", CurrentsRAW[0], CurrentsRAW[1], CurrentsRAW[2], CurrentsRAW[3], CurrentsRAW[4], CurrentsRAW[5], CurrentsRAW[6]);
 	balancerwritetouart1(transmit);
-}
-
-void printRAWVoltages2USB()
-{
-	//Fehlerhaft
-	char transmit[60];
-	sprintf(transmit, "V_ADC: %d %d %d %d %d %d %d \n", VoltagesRAW[0], VoltagesRAW[1], VoltagesRAW[2], VoltagesRAW[3], VoltagesRAW[4], VoltagesRAW[5], VoltagesRAW[6]);
-	HAL_Delay(1000);
-	//CDC_Transmit_FS(transmit,60);
 }
 
 void startTimers()
@@ -179,10 +183,6 @@ void testTimers()
 	  setFANPWM(200);
 }
 
-void CalibADC()
-{
-
-}
 /* USER CODE END 0 */
 
 int main(void)
@@ -243,6 +243,7 @@ int main(void)
 	  //Converting RAW ADC Data to Voltages
 	  convertRAWtoVoltage();
 	  convertRAWtoCurrent();
+	  calcTemp();
 	  //Print RAW ADC Data to UART
 	  printRAWVoltages2UART1();
 	  printRAWCurrents2UART1();
