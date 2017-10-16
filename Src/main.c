@@ -156,6 +156,7 @@ void startTimers()
 	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_3);
 }
 
+// 2nd HAL Layer for Charger Circuit
 void setCell1PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,value);}
 void setCell2PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,value);}
 void setCell3PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_3,value);}
@@ -163,6 +164,9 @@ void setCell4PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_4,value);}
 void setCell5PWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,value);}
 void setCell6PWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,value);}
 void setFANPWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,value);}
+void connectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_SET);}
+void disconnectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_RESET);}
+
 
 void testTimers()
 {
@@ -175,6 +179,10 @@ void testTimers()
 	  setFANPWM(200);
 }
 
+void CalibADC()
+{
+
+}
 /* USER CODE END 0 */
 
 int main(void)
