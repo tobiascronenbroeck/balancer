@@ -120,7 +120,7 @@ void convertRAWtoVoltage()
 	Voltages[3]=dV+((double)VoltagesRAW[3]*multiplicator);
 	Voltages[4]=dV+((double)VoltagesRAW[4]*multiplicator);
 	Voltages[5]=dV+((double)VoltagesRAW[5]*multiplicator);
-	Voltages[6]=dV+((double)VoltagesRAW[6]*multiplicator);
+	Voltages[6]=(-0.02)+((double)VoltagesRAW[6]*0.0089);
 }
 
 void convertRAWtoCurrent()
@@ -144,8 +144,8 @@ void printRAWVoltages2UART1()
 
 void printVoltages2UART1()
 {
-	char transmit[200];
-	sprintf(transmit, "V_ADC: %4.2lfV %4.2lfV %4.2lfV %4.2lfV %4.2lfV %4.2lfV %4.2lfV Temp: %d\n", Voltages[0], Voltages[1], Voltages[2], Voltages[3], Voltages[4], Voltages[5], Voltages[6],(int)sysTemp);
+	char transmit[80];
+	sprintf(transmit, "UC1 %2.2lfV UC2 %2.2lfV UC3 %2.2lfV UC4 %2.2lfV UC5 %2.2lfV UC6 %2.2lfV VBat %2.2lfV Temp: %d\n", Voltages[0], Voltages[1], Voltages[2], Voltages[3], Voltages[4], Voltages[5], Voltages[6],(int)sysTemp);
 	balancerwritetouart1(transmit);
 }
 
