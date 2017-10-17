@@ -66,7 +66,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-uint16_t VoltagesRAW[8];
+uint16_t VoltagesRAW[9];
 uint16_t CurrentsRAW[7];
 double Voltages[7];
 double Currents[7];
@@ -93,7 +93,7 @@ void balancerwritetouart1(char text[])
 void  startADCsampling()
 {
 	balancerwritetouart1("Starting ADC Sampling...\n");
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)VoltagesRAW, 8);
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)VoltagesRAW, 9);
 	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)CurrentsRAW, 7);
 	balancerwritetouart1("Success!\n");
 }
@@ -171,6 +171,12 @@ void setFANPWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,value);}
 void connectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_SET);}
 void disconnectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_RESET);}
 
+void CalibBU7()
+{
+	double multiplicator=3300/4095000;
+	double multiplicatornew=(double)VoltagesRAW[8]/3.30;
+	multiplicator=multiplicatornew;
+}
 
 void testTimers()
 {
@@ -213,7 +219,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
-  //MX_CAN1_Init();
+  MX_CAN1_Init();
   MX_DAC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
