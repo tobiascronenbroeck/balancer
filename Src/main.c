@@ -112,14 +112,15 @@ void calcTemp()
 
 void convertRAWtoVoltage()
 {
-	double multiplicator = (3300/0xfff)/1000;
-	Voltages[0]=VoltagesRAW[0]*multiplicator;
-	Voltages[1]=VoltagesRAW[1]*multiplicator;
-	Voltages[2]=VoltagesRAW[2]*multiplicator;
-	Voltages[3]=VoltagesRAW[3]*multiplicator;
-	Voltages[4]=VoltagesRAW[4]*multiplicator;
-	Voltages[5]=VoltagesRAW[5]*multiplicator;
-	Voltages[6]=VoltagesRAW[6]*multiplicator;
+	double dV=1.0717;
+	double multiplicator = 0.0029;
+	Voltages[0]=dV+((double)VoltagesRAW[0]*multiplicator);
+	Voltages[1]=dV+((double)VoltagesRAW[1]*multiplicator);
+	Voltages[2]=dV+((double)VoltagesRAW[2]*multiplicator);
+	Voltages[3]=dV+((double)VoltagesRAW[3]*multiplicator);
+	Voltages[4]=dV+((double)VoltagesRAW[4]*multiplicator);
+	Voltages[5]=dV+((double)VoltagesRAW[5]*multiplicator);
+	Voltages[6]=dV+((double)VoltagesRAW[6]*multiplicator);
 }
 
 void convertRAWtoCurrent()
@@ -138,6 +139,13 @@ void printRAWVoltages2UART1()
 {
 	char transmit[60];
 	sprintf(transmit, "V_ADC: %d %d %d %d %d %d %d Temp: %d\n", VoltagesRAW[0], VoltagesRAW[1], VoltagesRAW[2], VoltagesRAW[3], VoltagesRAW[4], VoltagesRAW[5], VoltagesRAW[6],(int)sysTemp);
+	balancerwritetouart1(transmit);
+}
+
+void printVoltages2UART1()
+{
+	char transmit[200];
+	sprintf(transmit, "V_ADC: %4.2lfV %4.2lfV %4.2lfV %4.2lfV %4.2lfV %4.2lfV %4.2lfV Temp: %d\n", Voltages[0], Voltages[1], Voltages[2], Voltages[3], Voltages[4], Voltages[5], Voltages[6],(int)sysTemp);
 	balancerwritetouart1(transmit);
 }
 
@@ -171,12 +179,6 @@ void setFANPWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,value);}
 void connectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_SET);}
 void disconnectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_RESET);}
 
-void CalibBU7()
-{
-	double multiplicator=3300/4095000;
-	double multiplicatornew=(double)VoltagesRAW[8]/3.30;
-	multiplicator=multiplicatornew;
-}
 
 void testTimers()
 {
@@ -219,7 +221,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
-  MX_CAN1_Init();
+  //MX_CAN1_Init();
   MX_DAC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
@@ -250,8 +252,9 @@ int main(void)
 	  convertRAWtoVoltage();
 	  convertRAWtoCurrent();
 	  calcTemp();
-	  //Print RAW ADC Data to UART
-	  printRAWVoltages2UART1();
+	  //Print ADC Data to UART
+	  //printRAWVoltages2UART1();
+	  printVoltages2UART1();
 	  printRAWCurrents2UART1();
 
 	  HAL_Delay(2000);
