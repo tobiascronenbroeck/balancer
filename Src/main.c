@@ -112,14 +112,12 @@ void calcTemp()
 
 void convertRAWtoVoltage()
 {
-	double dV=1.0717;
-	double multiplicator = 0.0029;
-	Voltages[0]=dV+((double)VoltagesRAW[0]*multiplicator);
-	Voltages[1]=dV+((double)VoltagesRAW[1]*multiplicator);
-	Voltages[2]=dV+((double)VoltagesRAW[2]*multiplicator);
-	Voltages[3]=dV+((double)VoltagesRAW[3]*multiplicator);
-	Voltages[4]=dV+((double)VoltagesRAW[4]*multiplicator);
-	Voltages[5]=dV+((double)VoltagesRAW[5]*multiplicator);
+	Voltages[0]=0.0974+((double)VoltagesRAW[0]*0.0022);
+	Voltages[1]=(-1.2495)+((double)VoltagesRAW[1]*0.0037);
+	Voltages[2]=(-0.2700)+((double)VoltagesRAW[2]*0.0019);
+	Voltages[3]=0.0133+((double)VoltagesRAW[3]*0.0016);
+	Voltages[4]=0.1447+((double)VoltagesRAW[4]*0.0016);
+	Voltages[5]=0.6459+((double)VoltagesRAW[5]*0.0014);
 	Voltages[6]=(-0.02)+((double)VoltagesRAW[6]*0.0089);
 }
 
@@ -253,7 +251,7 @@ int main(void)
 	  convertRAWtoCurrent();
 	  calcTemp();
 	  //Print ADC Data to UART
-	  //printRAWVoltages2UART1();
+	  printRAWVoltages2UART1();
 	  printVoltages2UART1();
 	  printRAWCurrents2UART1();
 
