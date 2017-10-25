@@ -2,3 +2,4 @@ R133 & R134 vertauschen -> Stromteiler R134= 10K R133= 100K
 R138 5K 0603 Widerstände bestellen
 Kondensatoren auf Analogsignale?
 R73 usw 10K-> 47K um Auflösung zu verbessern
+Wichtig! Verpolungsschutz bei Bat Bal und Bat Charge
