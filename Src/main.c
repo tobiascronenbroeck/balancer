@@ -68,6 +68,8 @@
 /* Private variables ---------------------------------------------------------*/
 uint16_t VoltagesRAW[9];
 uint16_t CurrentsRAW[7];
+uint16_t dDAVOutput;
+
 double Voltages[7];
 double Currents[7];
 double sysTemp;
@@ -88,6 +90,11 @@ void SystemClock_Config(void);
 void balancerwritetouart1(char text[])
 {
 	HAL_UART_Transmit(&huart1, (uint8_t *)text, strlen((const char*)text), HAL_MAX_DELAY);
+}
+
+void  startDACoutput() //Enabling Output of Reference Voltage for DC/DC Converter Controll
+{
+	HAL_DAC_Start_DMA(&hdac,DAC_CHANNEL_1, (uint32_t*)dDAVOutput,1,DAC_ALIGN_12B_R);
 }
 
 void  startADCsampling()
@@ -176,18 +183,7 @@ void setCell6PWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,value);}
 void setFANPWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,value);}
 void connectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_SET);}
 void disconnectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_RESET);}
-
-
-void testTimers()
-{
-	  setCell1PWM(200);
-	  setCell2PWM(200);
-	  setCell3PWM(200);
-	  setCell4PWM(200);
-	  setCell5PWM(200);
-	  setCell6PWM(200);
-	  setFANPWM(200);
-}
+void disableAllBalancer(){setCell1PWM(0); setCell2PWM(0); setCell3PWM(0); setCell4PWM(0); setCell5PWM(0); setCell6PWM(0); setFANPWM(0);}
 
 /* USER CODE END 0 */
 
@@ -235,7 +231,8 @@ int main(void)
   balancerwritetouart1("Starting Balancer HAL...\n");
   startADCsampling();
   startTimers();
-  //testTimers();
+  disableAllBalancer();
+  startDACoutput();
 
   /* USER CODE END 2 */
 

@@ -51,12 +51,14 @@
 #include "dac.h"
 
 #include "gpio.h"
+#include "dma.h"
 
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
 
 DAC_HandleTypeDef hdac;
+DMA_HandleTypeDef hdma_dac1;
 
 /* DAC init function */
 void MX_DAC_Init(void)
@@ -102,6 +104,25 @@ void HAL_DAC_MspInit(DAC_HandleTypeDef* dacHandle)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(DAC1_GPIO_Port, &GPIO_InitStruct);
 
+    /* DAC DMA Init */
+    /* DAC1 Init */
+    hdma_dac1.Instance = DMA1_Stream5;
+    hdma_dac1.Init.Channel = DMA_CHANNEL_7;
+    hdma_dac1.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_dac1.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_dac1.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_dac1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+    hdma_dac1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    hdma_dac1.Init.Mode = DMA_CIRCULAR;
+    hdma_dac1.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_dac1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_dac1) != HAL_OK)
+    {
+      _Error_Handler(__FILE__, __LINE__);
+    }
+
+    __HAL_LINKDMA(dacHandle,DMA_Handle1,hdma_dac1);
+
   /* USER CODE BEGIN DAC_MspInit 1 */
 
   /* USER CODE END DAC_MspInit 1 */
@@ -124,6 +145,8 @@ void HAL_DAC_MspDeInit(DAC_HandleTypeDef* dacHandle)
     */
     HAL_GPIO_DeInit(DAC1_GPIO_Port, DAC1_Pin);
 
+    /* DAC DMA DeInit */
+    HAL_DMA_DeInit(dacHandle->DMA_Handle1);
   /* USER CODE BEGIN DAC_MspDeInit 1 */
 
   /* USER CODE END DAC_MspDeInit 1 */
