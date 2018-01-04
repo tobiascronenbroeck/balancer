@@ -9,7 +9,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2017 STMicroelectronics International N.V. 
+  * Copyright (c) 2018 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -68,7 +68,7 @@
 /* Private variables ---------------------------------------------------------*/
 uint16_t VoltagesRAW[9];
 uint16_t CurrentsRAW[7];
-uint16_t dDAVOutput;
+uint32_t VoltagesRAWAvg[9];
 
 double Voltages[7];
 double Currents[7];
@@ -92,9 +92,9 @@ void balancerwritetouart1(char text[])
 	HAL_UART_Transmit(&huart1, (uint8_t *)text, strlen((const char*)text), HAL_MAX_DELAY);
 }
 
-void  startDACoutput() //Enabling Output of Reference Voltage for DC/DC Converter Controll
+void  startDACoutput() //Enabling Output of Reference Voltage for DC/DC Converter controll
 {
-	HAL_DAC_Start_DMA(&hdac,DAC_CHANNEL_1, (uint32_t*)dDAVOutput,1,DAC_ALIGN_12B_R);
+	HAL_DAC_Start(&hdac,DAC_CHANNEL_1);
 }
 
 void  startADCsampling()
@@ -117,15 +117,26 @@ void calcTemp()
 	sysTemp=sysTempTemp;
 }
 
+double calcinputvoltage()
+
+{
+	double temp= VoltagesRAWAvg[6];
+
+	double output = 0;
+	output= 0.0089*temp-0.3878; //0,3727
+
+	return output;
+}
+
 void convertRAWtoVoltage()
 {
-	Voltages[0]=0.0974+((double)VoltagesRAW[0]*0.0022);
-	Voltages[1]=(-1.2495)+((double)VoltagesRAW[1]*0.0037);
-	Voltages[2]=(-0.2700)+((double)VoltagesRAW[2]*0.0019);
-	Voltages[3]=0.0133+((double)VoltagesRAW[3]*0.0016);
-	Voltages[4]=0.1447+((double)VoltagesRAW[4]*0.0016);
-	Voltages[5]=0.6459+((double)VoltagesRAW[5]*0.0014);
-	Voltages[6]=(-0.02)+((double)VoltagesRAW[6]*0.0089);
+	Voltages[0]=0.0974+((double)VoltagesRAWAvg[0]*0.0022);
+	Voltages[1]=(-1.2495)+((double)VoltagesRAWAvg[1]*0.0037);
+	Voltages[2]=(-0.2700)+((double)VoltagesRAWAvg[2]*0.0019);
+	Voltages[3]=0.0133+((double)VoltagesRAWAvg[3]*0.0016);
+	Voltages[4]=0.1447+((double)VoltagesRAWAvg[4]*0.0016);
+	Voltages[5]=0.6459+((double)VoltagesRAWAvg[5]*0.0014);
+	Voltages[6]=calcinputvoltage();
 }
 
 void convertRAWtoCurrent()
@@ -154,12 +165,36 @@ void printVoltages2UART1()
 	balancerwritetouart1(transmit);
 }
 
+void printabsRAWVoltages2UART1()
+{
+	char transmit[60];
+	sprintf(transmit, "V_ADC: %d %d %d %d %d %d %d Temp: %d\n", VoltagesRAWAvg[0], VoltagesRAWAvg[1], VoltagesRAWAvg[2], VoltagesRAWAvg[3], VoltagesRAWAvg[4], VoltagesRAWAvg[5], VoltagesRAWAvg[6],(int)sysTemp);
+	balancerwritetouart1(transmit);
+}
+
 void printRAWCurrents2UART1()
 {
 
 	char transmit[40];
 	sprintf(transmit, "I_ADC: %d %d %d %d %d %d %d \n", CurrentsRAW[0], CurrentsRAW[1], CurrentsRAW[2], CurrentsRAW[3], CurrentsRAW[4], CurrentsRAW[5], CurrentsRAW[6]);
 	balancerwritetouart1(transmit);
+}
+
+void calculateaveragevoltage()
+{
+	uint32_t VoltagesRAWAvgtemp[9]={0};
+	int abssamples=600;
+	for(int samples=0; samples < abssamples; samples++){
+	for(int ch=0; ch<9; ch++)
+	{
+		VoltagesRAWAvgtemp[ch]=VoltagesRAWAvgtemp[ch]+VoltagesRAW[ch];
+	}
+	HAL_Delay(10);
+	}
+	for(int i=0; i<9;i++)
+	{
+		VoltagesRAWAvg[i]=VoltagesRAWAvgtemp[i]/abssamples;
+	}
 }
 
 void startTimers()
@@ -173,6 +208,31 @@ void startTimers()
 	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_3);
 }
 
+uint16_t getaverageofadcvalue()
+{
+	uint32_t sampletime= 150;
+	uint32_t temp=0;
+	for(int counter=0; counter <= sampletime; counter++)
+	{
+		temp += VoltagesRAW[6];
+		HAL_Delay(100);
+	}
+	temp=temp/sampletime;
+	return (uint16_t)temp;
+}
+
+void sendcalibdatatoserial()
+{
+	uint16_t avg= getaverageofadcvalue();
+	char transmit[25];
+	sprintf(transmit, "Avg. ADC Value: %d \n",avg);
+	balancerwritetouart1(transmit);
+
+}
+
+
+
+
 // 2nd HAL Layer for Charger Circuit
 void setCell1PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,value);}
 void setCell2PWM(int value){__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,value);}
@@ -184,6 +244,23 @@ void setFANPWM(int value){__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_3,value);}
 void connectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_SET);}
 void disconnectBatteryGND(){	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10,GPIO_PIN_RESET);}
 void disableAllBalancer(){setCell1PWM(0); setCell2PWM(0); setCell3PWM(0); setCell4PWM(0); setCell5PWM(0); setCell6PWM(0); setFANPWM(0);}
+void setDACLevel(uint32_t output){HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R,output);}
+
+void calibrateVoltageInput()
+{
+	for (int i= 0; i<=3300; i=i+100)
+	{
+		setDACLevel(i);
+		//HAL_Delay(2000);
+		char transmit[40];
+		calculateaveragevoltage();
+		convertRAWtoVoltage();
+		sprintf(transmit, "DAC Value: %d | ADC Value : %d | Voltage: %2.2lfV \n",i , VoltagesRAWAvg[6], Voltages[6]);
+		balancerwritetouart1(transmit);
+		HAL_Delay(2000);
+	}
+
+}
 
 /* USER CODE END 0 */
 
@@ -244,15 +321,21 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 	  //Converting RAW ADC Data to Voltages
-	  convertRAWtoVoltage();
-	  convertRAWtoCurrent();
-	  calcTemp();
-	  //Print ADC Data to UART
-	  printRAWVoltages2UART1();
-	  printVoltages2UART1();
-	  printRAWCurrents2UART1();
+	      calculateaveragevoltage();
+	      convertRAWtoVoltage();
+	      //convertRAWtoCurrent();
+	      calcTemp();
 
-	  HAL_Delay(2000);
+	  //Print ADC Data to UART
+	  //printRAWVoltages2UART1();
+	      printabsRAWVoltages2UART1();
+
+	      printVoltages2UART1();
+	      calibrateVoltageInput();
+	      //printRAWCurrents2UART1();
+          //HAL_Delay(1000);
+
+	  //sendcalibdatatoserial();
   }
   /* USER CODE END 3 */
 

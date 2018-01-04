@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/tobia/git/balancer/Inc
+HeaderPath=C:/Users/Cronenbroeck/git/balancer/Inc
 HeaderFiles=gpio.h;adc.h;can.h;dac.h;spi.h;tim.h;usart.h;usb_device.h;usbd_conf.h;usbd_desc.h;usbd_cdc_if.h;stm32f4xx_it.h;stm32f4xx_hal_conf.h;;dma.h;main.h;
-SourcePath=C:/Users/tobia/git/balancer/Src
+SourcePath=C:/Users/Cronenbroeck/git/balancer/Src
 SourceFiles=gpio.h;adc.h;can.h;dac.h;spi.h;tim.h;usart.h;usb_device.h;usbd_conf.h;usbd_desc.h;usbd_cdc_if.h;stm32f4xx_it.h;stm32f4xx_hal_conf.h;mxconstants.h;gpio.c;adc.c;can.c;dac.c;spi.c;tim.c;usart.c;usb_device.c;usbd_conf.c;usbd_desc.c;usbd_cdc_if.c;stm32f4xx_it.c;stm32f4xx_hal_msp.c;main.c;;dma.h;dma.c;main.h;
 
 [PreviousLibFiles]

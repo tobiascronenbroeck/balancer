@@ -4,3 +4,6 @@ Kondensatoren auf Analogsignale?  ggf. auch Ferrite
 R73 usw 10K-> 47K um Auflösung zu verbessern
 Wichtig! Verpolungsschutz bei Bat Bal und Bat Charge
 Positiver Pol Bat trennbar / Trennung zwischen Balancer Teil und Ladespannung
+Eingangs und Batteriespannung getrennt messen
+parallel Spannungsteiler zur Erhöhung der Genauigkeit
+fets& transistoren auf Spannungsfestigkeit überprüfen
