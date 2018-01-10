@@ -57,6 +57,7 @@
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
+#include "math.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -117,26 +118,20 @@ void calcTemp()
 	sysTemp=sysTempTemp;
 }
 
-double calcinputvoltage()
-
-{
-	double temp= VoltagesRAWAvg[6];
-
-	double output = 0;
-	output= 0.0089*temp-0.3878; //0,3727
-
-	return output;
-}
-
 void convertRAWtoVoltage()
 {
+	uint32_t VinADCValue=(uint32_t)VoltagesRAWAvg[6];
+	uint32_t VinADCValue2= VinADCValue*VinADCValue;
+
 	Voltages[0]=0.0974+((double)VoltagesRAWAvg[0]*0.0022);
 	Voltages[1]=(-1.2495)+((double)VoltagesRAWAvg[1]*0.0037);
 	Voltages[2]=(-0.2700)+((double)VoltagesRAWAvg[2]*0.0019);
 	Voltages[3]=0.0133+((double)VoltagesRAWAvg[3]*0.0016);
 	Voltages[4]=0.1447+((double)VoltagesRAWAvg[4]*0.0016);
 	Voltages[5]=0.6459+((double)VoltagesRAWAvg[5]*0.0014);
-	Voltages[6]=calcinputvoltage();
+
+	Voltages[6]=((-0.0000000860042161)*VinADCValue2)+(0.0092182965742789*VinADCValue)+(-0.5632864960491588);
+	//Voltages[6]=(0.0088845135195246*VinADCValue)+(-0.3125010424988295);
 }
 
 void convertRAWtoCurrent()
@@ -210,11 +205,11 @@ void startTimers()
 
 uint16_t getaverageofadcvalue()
 {
-	uint32_t sampletime= 150;
+	uint32_t sampletime= 20;
 	uint32_t temp=0;
 	for(int counter=0; counter <= sampletime; counter++)
 	{
-		temp += VoltagesRAW[6];
+		temp += VoltagesRAW[6]*VoltagesRAW[6];
 		HAL_Delay(100);
 	}
 	temp=temp/sampletime;
@@ -248,10 +243,10 @@ void setDACLevel(uint32_t output){HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN
 
 void calibrateVoltageInput()
 {
-	for (int i= 0; i<=3300; i=i+100)
+	for (int i= 0; i<=3300; i=i+300)
 	{
 		setDACLevel(i);
-		//HAL_Delay(2000);
+		HAL_Delay(1000);
 		char transmit[40];
 		calculateaveragevoltage();
 		convertRAWtoVoltage();
@@ -260,6 +255,21 @@ void calibrateVoltageInput()
 		HAL_Delay(2000);
 	}
 
+}
+
+void setoutputvoltage(uint32_t voltage)
+{
+	uint32_t voltage2= voltage*voltage;
+	if (voltage > 3.0)
+	{
+		if (voltage < 30)
+		{
+			uint32_t dacvalue = 0.03398586627*voltage2 + (-122.42436284509)*voltage+3545;
+			setDACLevel((int)dacvalue);
+			HAL_Delay(1000);
+			//if()
+		}
+	}
 }
 
 /* USER CODE END 0 */
@@ -292,7 +302,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
-  //MX_CAN1_Init();
+ // MX_CAN1_Init();
   MX_DAC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
@@ -311,6 +321,8 @@ int main(void)
   disableAllBalancer();
   startDACoutput();
 
+  setoutputvoltage(5.0);
+  HAL_Delay(1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
