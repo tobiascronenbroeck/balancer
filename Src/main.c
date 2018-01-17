@@ -57,7 +57,6 @@
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
-#include "math.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -178,13 +177,13 @@ void printRAWCurrents2UART1()
 void calculateaveragevoltage()
 {
 	uint32_t VoltagesRAWAvgtemp[9]={0};
-	int abssamples=600;
+	int abssamples=2000;
 	for(int samples=0; samples < abssamples; samples++){
 	for(int ch=0; ch<9; ch++)
 	{
 		VoltagesRAWAvgtemp[ch]=VoltagesRAWAvgtemp[ch]+VoltagesRAW[ch];
 	}
-	HAL_Delay(10);
+	//HAL_Delay(10);
 	}
 	for(int i=0; i<9;i++)
 	{
@@ -246,7 +245,7 @@ void calibrateVoltageInput()
 	for (int i= 0; i<=3300; i=i+300)
 	{
 		setDACLevel(i);
-		HAL_Delay(1000);
+		HAL_Delay(3000);
 		char transmit[40];
 		calculateaveragevoltage();
 		convertRAWtoVoltage();
@@ -302,7 +301,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
- // MX_CAN1_Init();
+  //MX_CAN1_Init();
   MX_DAC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
@@ -343,7 +342,8 @@ int main(void)
 	      printabsRAWVoltages2UART1();
 
 	      printVoltages2UART1();
-	      calibrateVoltageInput();
+	      HAL_Delay(2000);
+	  //calibrateVoltageInput();
 	      //printRAWCurrents2UART1();
           //HAL_Delay(1000);
 
